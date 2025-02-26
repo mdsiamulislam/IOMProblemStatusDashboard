@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem Status Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e3f2e1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color:#4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+        .small-logo {
+            height: 20px;
+            margin-right: 5px;
+        }
+        main {
+            flex: 1;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+            background: whitesmoke;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .loading {
+            font-size: 20px;
+            font-weight: bold;
+            color: #008000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading::after {
+            content: "";
+            width: 15px;
+            height: 15px;
+            margin-left: 10px;
+            border: 3px solid #008000;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            display: none;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #008000;
+            color: white;
+        }
+        .pending { background-color: #ffcc00; }
+        .solved { background-color: #4caf50; color: white; }
+        .in-progress { background-color: #2196F3; color: white; }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #333;
+            color: white;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="data:image/jpeg;base64,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" alt="Logo">
+            <h1>Problem Status Dashboard</h1>
+        </div>
+    </header>
+    <main>
+        <div class="loading" id="loading">Loading data...</div>
+        <table id="data-table-container">
+            <thead>
+                <tr>
+                    <th>Problem</th>
+                    <th>Status</th>
+                    <th>Solution</th>
+                </tr>
+            </thead>
+            <tbody id="data-table">
+                <!-- Data will be loaded here -->
+            </tbody>
+        </table>
+    </main>
+    <footer>
+        <p>
+            Developed by <a href="http://github.com/mdsiamulislam" style="color: black; text-decoration: none;" onmouseover="this.style.color='white'" onmouseout="this.style.color='black'">Md Siamul Islam Soaib</a>
+        </p>
+        <button onclick="window.location.href='https://forms.gle/uiAHvrbsJSCwaci49'" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 5px; transition: background-color 0.3s ease;">
+            Submit Your Solution
+        </button>
+        
+    </footer>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const loading = document.getElementById("loading");
+            const tableContainer = document.getElementById("data-table-container");
+            loading.style.display = "flex";
+
+            fetch("https://script.google.com/macros/s/AKfycby6NKx2tqgedZym3_bDnQZ9nmW3SlsnT0bdxs34h-HcApjKPWozqTRF-mHKn5eB_kahxQ/exec")
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById("data-table");
+                    tableBody.innerHTML = "";
+                    data.forEach(item => {
+                        const row = document.createElement("tr");
+                        let statusClass = "";
+                        if (item.Status.toLowerCase() === "pending") statusClass = "pending";
+                        else if (item.Status.toLowerCase() === "solved") statusClass = "solved";
+                        else if (item.Status.toLowerCase() === "in progress") statusClass = "in-progress";
+
+                        row.innerHTML = `
+                            <td>${item.Problem}</td>
+                            <td class="${statusClass}">${item.Status}</td>
+                            <td>${item.Solve}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    loading.style.display = "none";
+                    tableContainer.style.display = "table";
+                })
+                .catch(error => {
+                    loading.innerText = "Failed to load data.";
+                    console.error("Error fetching data:", error);
+                });
+        });
+    </script>
+</body>
+</html>
