@@ -20,31 +20,37 @@ document.addEventListener("DOMContentLoaded", function () {
             let dailyUpdates = [];
 
             data.forEach(entry => {
-                let name = entry["  👤  নাম"] || "অজানা";
-                let activeTime = entry["💬   গ্রুপে মোট কতক্ষণ সক্রিয় ছিলেন?  "] || "❌ নেই";
-                let courses = entry["📚   আপনি কোন কোন কোর্সের জিম্মাদার?  "] || "❌ নেই";
-                let timestamp = entry["Timestamp"] || "❌ নেই";
+                let name = entry["  👤  নাম"]?.trim() || "অজানা";
+                let activeTime = entry["💬   গ্রুপে মোট কতক্ষণ সক্রিয় ছিলেন?  "]?.trim() || "❌ নেই";
+                let courses = entry["📚   আপনি কোন কোন কোর্সের জিম্মাদার?  "]?.trim() || "❌ নেই";
+                let timestamp = entry["Timestamp"]?.trim() || "❌ নেই";
 
                 // Timestamp থেকে তারিখ আলাদা করা
                 let date = new Date(timestamp).toLocaleDateString("en-GB");
 
-                // লিডারবোর্ড তৈরি
+                // যদি নামটি লিডারবোর্ডে না থাকে, তাহলে সেটাকে শুরুতে 0 করে রাখি
                 if (!leaderboard[name]) {
                     leaderboard[name] = { name, activeTime: 0 };
                 }
 
                 // Extract hours from activeTime
-                if (activeTime.includes("১ ঘণ্টা+")) leaderboard[name].activeTime += 1;
-                if (activeTime.includes("২ ঘণ্টা+")) leaderboard[name].activeTime += 2;
-                if (activeTime.includes("৩ ঘণ্টা+")) leaderboard[name].activeTime += 3;
+                let hours = 0;
+                if (activeTime.includes("১ ঘণ্টা+")) hours = 1;
+                if (activeTime.includes("২ ঘণ্টা+")) hours = 2;
+                if (activeTime.includes("৩ ঘণ্টা+")) hours = 3;
+
+                // মোট সময় যোগ করা
+                leaderboard[name].activeTime += hours;
 
                 // দৈনিক আপডেট লিস্ট (Timestamp সহ)
                 dailyUpdates.push(`📅 ${date} | ${name} 🕒 ${activeTime} 📚 ${courses}`);
             });
 
-            // লিডারবোর্ড সাজানো
+            // লিডারবোর্ড সাজানো (সর্বোচ্চ সক্রিয় ব্যক্তিকে উপরে দেখানো)
             let sortedLeaderboard = Object.values(leaderboard).sort((a, b) => b.activeTime - a.activeTime);
 
+            // লিডারবোর্ড HTML এ যোগ করা
+            leaderboardBody.innerHTML = "";
             sortedLeaderboard.forEach(user => {
                 let row = document.createElement("tr");
                 row.innerHTML = `
@@ -55,6 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             // দৈনিক আপডেট দেখানো
+            updatesList.innerHTML = "";
             dailyUpdates.forEach(update => {
                 let li = document.createElement("li");
                 li.textContent = update;
